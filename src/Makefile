@@ -26,8 +26,12 @@ PREFIX?=/usr/local
 INSTALL_BIN=$(PREFIX)/bin
 INSTALL=install
 
-# Default allocator defaults to memkind
-MALLOC=memkind
+# Default allocator
+ifeq ($(uname_S),Linux)
+	MALLOC=jemalloc
+else
+	MALLOC=libc
+endif
 
 # Backwards compatibility for selecting an allocator
 ifeq ($(USE_TCMALLOC),yes)
