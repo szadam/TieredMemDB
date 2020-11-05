@@ -80,6 +80,7 @@ set ::portcount 8000; # we don't wanna use more than 10000 to avoid collision wi
 set ::traceleaks 0
 set ::valgrind 0
 set ::durable 0
+set ::pmem_ratio_test 0
 set ::tls 0
 set ::stack_logging 0
 set ::verbose 0
@@ -523,6 +524,7 @@ proc print_help_screen {} {
     puts [join {
         "--valgrind         Run the test over valgrind."
         "--durable          suppress test crashes and keep running"
+        "--pmem-ratio       Run the tests with pmem-ratio variant."
         "--stack-logging    Enable OSX leaks/malloc stack logging."
         "--accurate         Run slow randomized tests for more iterations."
         "--quiet            Don't show individual tests."
@@ -579,6 +581,8 @@ for {set j 0} {$j < [llength $argv]} {incr j} {
         incr j
     } elseif {$opt eq {--valgrind}} {
         set ::valgrind 1
+    } elseif {$opt eq {--pmem-ratio}} {
+        set ::pmem_ratio_test 1
     } elseif {$opt eq {--stack-logging}} {
         if {[string match {*Darwin*} [exec uname -a]]} {
             set ::stack_logging 1
