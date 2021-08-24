@@ -305,6 +305,7 @@ proc start_server {options {code undefined}} {
 
     if {$::pmem_ratio_test} {
         set memory-alloc-policy "ratio"
+        set pmem-variant "single"
         set dram-pmem-ratio "1 3"
         set initial-dynamic-threshold "64"
         set dynamic-threshold-min "24"
