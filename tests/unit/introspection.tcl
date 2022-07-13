@@ -231,6 +231,14 @@ start_server {tags {"introspection"}} {
             logfile
             dir
             socket-mark-id
+            dram-pmem-ratio
+            memory-alloc-policy
+            pmem-variant
+            initial-dynamic-threshold
+            dynamic-threshold-min
+            dynamic-threshold-max
+            memory-ratio-check-period
+            hashtable-on-dram
         }
 
         if {!$::tls} {
