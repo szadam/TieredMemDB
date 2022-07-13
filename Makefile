@@ -26,8 +26,7 @@ AUTOCONFAGE=Makefile.in \
 	m4/ltsugar.m4 \
 	m4/ltversion.m4 \
 	m4/lt~obsolete.m4 \
-	missing \
-	test-driver
+	missing
 
 TARBALL=tmdb-$(shell git describe --tags)
 git-tarball:
