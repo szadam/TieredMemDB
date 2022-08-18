@@ -26,8 +26,11 @@ ifneq (,$(findstring FreeBSD,$(uname_S)))
   STD+=-Wno-c11-extensions
 endif
 endif
-WARN=-Wall -W -Wno-missing-field-initializers
+WARN=-Wall -W -Wno-missing-field-initializers -Wformat -Wformat-security
 OPT=$(OPTIMIZATION)
+SECURITY_PIC=-fPIE -fPIC
+SECURITY_NO_EXEC=-Wl,-z,relro,-z,now,-z,noexecstack
+SECURITY_FLAGS=$(SECURITY_PIC) $(SECURITY_NO_EXEC)
 
 PREFIX?=/usr/local
 INSTALL_BIN=$(PREFIX)/bin
@@ -70,8 +73,8 @@ endif
 # Override default settings if possible
 -include .make-settings
 
-FINAL_CFLAGS=$(STD) $(WARN) $(OPT) $(DEBUG) $(CFLAGS) $(REDIS_CFLAGS)
-FINAL_LDFLAGS=$(LDFLAGS) $(REDIS_LDFLAGS) $(DEBUG)
+FINAL_CFLAGS=$(STD) $(WARN) $(OPT) $(DEBUG) $(CFLAGS) $(REDIS_CFLAGS) $(SECURITY_FLAGS)
+FINAL_LDFLAGS=$(LDFLAGS) $(REDIS_LDFLAGS) $(DEBUG) $(SECURITY_FLAGS)
 FINAL_LIBS=-lm
 DEBUG=-g -ggdb
 
