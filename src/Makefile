@@ -28,15 +28,8 @@ PREFIX?=/usr/local
 INSTALL_BIN=$(PREFIX)/bin
 INSTALL=install
 
-# Default allocator defaults to Jemalloc if it's not an ARM
-MALLOC=libc
-ifneq ($(uname_M),armv6l)
-ifneq ($(uname_M),armv7l)
-ifeq ($(uname_S),Linux)
-	MALLOC=jemalloc
-endif
-endif
-endif
+# TieredMemDB uses the memkind allocator.
+MALLOC=memkind
 
 # To get ARM stack traces if Redis crashes we need a special C flag.
 ifneq (,$(findstring armv,$(uname_M)))
@@ -60,6 +53,9 @@ ifeq ($(USE_JEMALLOC),no)
 	MALLOC=libc
 endif
 
+ifeq ($(USE_MEMKIND),yes)
+	MALLOC=memkind
+endif
 # Override default settings if possible
 -include .make-settings
 
@@ -100,7 +96,7 @@ ifeq ($(uname_S),FreeBSD)
 else
 	# All the other OSes (notably Linux)
 	FINAL_LDFLAGS+= -rdynamic
-	FINAL_LIBS+=-ldl -pthread
+	FINAL_LIBS+=-ldl -pthread -lrt
 endif
 endif
 endif
@@ -125,6 +121,16 @@ ifeq ($(MALLOC),jemalloc)
 	FINAL_LIBS+= ../deps/jemalloc/lib/libjemalloc.a
 endif
 
+ifeq ($(MALLOC),memkind)
+	HAVE_DAXCTL := $(shell sh -c "(echo 'int main(void) { return 0; }') | $(CC) -x c - -ldaxctl 2>&1 && rm a.out && echo y")
+	ifeq ($(HAVE_DAXCTL), y)
+		DAXCTL_LIB = -ldaxctl
+	endif
+	DEPENDENCY_TARGETS+= memkind
+	FINAL_CFLAGS+= -DUSE_MEMKIND -I../deps/memkind/include
+	FINAL_LIBS+= ../deps/memkind/.libs/libmemkind.a $(DAXCTL_LIB) -lnuma -ldl
+endif
+
 REDIS_CC=$(QUIET_CC)$(CC) $(FINAL_CFLAGS)
 REDIS_LD=$(QUIET_LINK)$(CC) $(FINAL_LDFLAGS)
 REDIS_INSTALL=$(QUIET_INSTALL)$(INSTALL)
@@ -144,7 +150,7 @@ endif
 
 REDIS_SERVER_NAME=redis-server
 REDIS_SENTINEL_NAME=redis-sentinel
-REDIS_SERVER_OBJ=adlist.o quicklist.o ae.o anet.o dict.o server.o sds.o zmalloc.o lzf_c.o lzf_d.o pqsort.o zipmap.o sha1.o ziplist.o release.o networking.o util.o object.o db.o replication.o rdb.o t_string.o t_list.o t_set.o t_zset.o t_hash.o config.o aof.o pubsub.o multi.o debug.o sort.o intset.o syncio.o cluster.o crc16.o endianconv.o slowlog.o scripting.o bio.o rio.o rand.o memtest.o crc64.o bitops.o sentinel.o notify.o setproctitle.o blocked.o hyperloglog.o latency.o sparkline.o redis-check-rdb.o redis-check-aof.o geo.o lazyfree.o module.o evict.o expire.o geohash.o geohash_helper.o childinfo.o defrag.o siphash.o rax.o
+REDIS_SERVER_OBJ=adlist.o quicklist.o ae.o anet.o dict.o server.o sds.o zmalloc.o lzf_c.o lzf_d.o pqsort.o zipmap.o sha1.o ziplist.o release.o networking.o util.o object.o db.o replication.o rdb.o t_string.o t_list.o t_set.o t_zset.o t_hash.o config.o aof.o pubsub.o multi.o debug.o sort.o intset.o syncio.o cluster.o crc16.o endianconv.o slowlog.o scripting.o bio.o rio.o rand.o memtest.o crc64.o bitops.o sentinel.o notify.o setproctitle.o blocked.o hyperloglog.o latency.o sparkline.o redis-check-rdb.o redis-check-aof.o geo.o lazyfree.o module.o evict.o expire.o geohash.o geohash_helper.o childinfo.o defrag.o siphash.o rax.o pmem.o
 REDIS_CLI_NAME=redis-cli
 REDIS_CLI_OBJ=anet.o adlist.o redis-cli.o zmalloc.o release.o anet.o ae.o crc64.o
 REDIS_BENCHMARK_NAME=redis-benchmark
