@@ -541,14 +541,20 @@ void loadServerConfigFromString(char *config) {
 
         /* Execute config directives */
         if (!strcasecmp(argv[0],"dram-pmem-ratio") && argc == 3) {
-                int dram = atoi(argv[1]);
-                int pmem = atoi(argv[2]);
-                if (dram == 0 || pmem == 0) {
-                  err = "Invalid dram-pmem-ratio parameters"; goto loaderr;
-                }
-                server.dram_pmem_ratio.dram_val = dram;
-                server.dram_pmem_ratio.pmem_val = pmem;
-                server.target_pmem_dram_ratio = (double)pmem/dram;
+            char *str_end = NULL;
+            long dram = strtol(argv[1], &str_end, 10);
+            if (argv[1] == str_end || dram <= 0 || dram > INT_MAX) {
+                err = "Invalid dram part of dram-pmem-ratio parameter";
+                goto loaderr;
+            }
+            long pmem = strtol(argv[2], &str_end, 10);
+            if (argv[2] == str_end || pmem <= 0 || pmem > INT_MAX) {
+                err = "Invalid dram part of dram-pmem-ratio parameter";
+                goto loaderr;
+            }
+            server.dram_pmem_ratio.dram_val = (int)dram;
+            server.dram_pmem_ratio.pmem_val = (int)pmem;
+            server.target_pmem_dram_ratio = (double)pmem / dram;
         } else if (!strcasecmp(argv[0],"include") && argc == 2) {
             loadServerConfig(argv[1], 0, NULL);
         } else if (!strcasecmp(argv[0],"rename-command") && argc == 3) {
