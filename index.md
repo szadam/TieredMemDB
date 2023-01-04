@@ -20,6 +20,53 @@ The source code of TieredMemDB can be found in this [GitHub repository](https://
 * Redis compatible - supports all features and structures of Redis.
 * Configurable - use simple parameters to configure new features.
 
+# How to create new branch based on Redis tag branch
+
+New realeases are uploaded to Redis from time to time. In order to make Redis
+work with pmem, appropriate changes must be made.
+This instruction will be (most likely) done for a new selected tag (most likely
+on a brand new tag from Redis) and this manual will present
+an example based on creating new branch 7.0.5-devel from Redis tag 7.0.5.
+
+1. First, administrator should create a new branch on TieredMemDB repository based on
+clean Redis tag (7.0.5).
+2.	Fork TieredMemDB on github:
+
+https://github.com/TieredMemDB/TieredMemDB. 
+    
+3.	Create a local clone of the TieredMemDB.
+4.	Switch on a new branch based on the Redis tag:
+
+    'git switch -c <tag_name-devel> (git switch -c 7.0.5-devel)'
+
+5.	Now it is necessary to add changes that makes Redis supports pmem. To
+do this, you should use commits from the previous TieredMemDB branch. You
+can use pre-made script to generate cherry-pick command based on the previous
+TieredMemDB branch. You need to use the command:
+
+'python3 tmdb-cherry-pick.py tieredmemdb/<branch name>'
+('python3 tmdb-cherry-pick.py tieredmemdb/7.0.4-devel')(most likely on a brand new tag from Redis)
+
+The output will look like:
+
+'cherry-pick <commit sha> <commit sha> ….'
+
+That commits will make Redis work compatible with pmem but sometimes some
+more commits may be required.
+
+6.	Use generated cherry-pick command to add the appropriate commits to
+your branch based on Redis.
+7.	Sometimes there will be some merge conflict to solved. Go through
+them carefully.
+8.	Push changes to your fork:
+
+'git push <remote name>'
+
+9.	You can go to github’s site and create a pull request
+( https://help.github.com/articles/creating-a-pull-request/ ). After
+that wait until your changes passed the tests on github and the benchmark tests.
+The tests allow you to check whether the branch has been created correctly.
+
 # TieredMemDB documentation
 ## Requirements
 TieredMemDB requires Linux kernel 5.1 or higher. This version introduces [KMEM DAX](https://patchwork.kernel.org/project/linux-nvdimm/cover/20190225185727.BCBD768C@viggo.jf.intel.com/) feature which is used to expose PMEM device as a system-ram.
